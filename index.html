@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Typing Game - News Edition</title>
   <style>
     body {
@@ -11,12 +11,14 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
       margin: 0;
       background: #f9f9f9;
     }
     .hidden { display: none; }
-    .centered { text-align: center; margin: 20px; }
+    .centered {
+      text-align: center;
+      margin: 20px;
+    }
     input[type="text"] {
       font-size: 24px;
       padding: 10px;
@@ -30,56 +32,61 @@
       margin: 5px;
       padding: 10px 20px;
     }
+    #resultsTable {
+      width: 90%;
+      max-width: 900px;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    #resultsTable th, #resultsTable td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <div id="home" class="centered">
     <h1>Typing Game - News Edition</h1>
-    <p style="color: red;">※ 半角英数で入力してください</p>
+    <p style="color:red;">※半角英字モードでご入力ください</p>
     <p>Select your game mode:</p>
     <div class="controls">
       <button onclick="startGame('questions', 1)">1 Question</button>
       <button onclick="startGame('questions', 10)">10 Questions</button>
-      <button onclick="startGame('questions', 30)">30 Questions</button><br />
+      <button onclick="startGame('questions', 30)">30 Questions</button><br>
       <button onclick="startGame('timer', 60)">1 Minute</button>
       <button onclick="startGame('timer', 180)">3 Minutes</button>
       <button onclick="startGame('timer', 300)">5 Minutes</button>
     </div>
-    <p id="score-formula"></p>
+    <p id="formula">Score = (Correct characters - Mistakes × 2) / Time (sec)</p>
   </div>
 
   <div id="game" class="centered hidden">
     <h2 id="headline"></h2>
-    <input type="text" id="input" oninput="checkTyping()" />
+    <input type="text" id="input" oninput="checkTyping()">
     <div id="feedback" class="feedback"></div>
     <p id="status"></p>
     <button onclick="nextHeadline()">Next</button>
     <button onclick="goHome()">Home</button>
   </div>
 
-  <div id="result" class="centered hidden">
-    <h2>Result</h2>
-    <p id="final-score"></p>
-    <p id="final-details"></p>
-    <p><strong>原文:</strong> <span id="original-headline"></span></p>
-    <p><strong>翻訳:</strong> <span id="headline-translation"></span></p>
-    <p><a id="headline-link" href="#" target="_blank">ニュース記事を読む</a></p>
-    <button onclick="goHome()">Back to Home</button>
+  <div id="results" class="centered hidden">
+    <h2>Game Results</h2>
+    <p id="finalScore"></p>
+    <div id="history"></div>
+    <div id="newsResults"></div>
+    <button onclick="goHome()">Home</button>
   </div>
 
   <script>
     const headlines = [
-      {
-        text: "Chris Mason Labour still has a big persuasion job ahead",
-        translation: "クリス・メイソン：労働党にはまだ説得の仕事が残されている",
-        url: "https://www.bbc.com/news/example-1"
-      },
-      {
-        text: "Household energy bills fall but may not go much lower",
-        translation: "家庭の電気代は下がったが、今後の大幅な低下は見込めない",
-        url: "https://www.bbc.com/news/example-2"
-      },
-      // ...続きのニュースを追加できます
+      { text: "Chris Mason Labour still has a big persuasion job ahead", translation: "クリス・メイソン氏：労働党はまだ説得すべき課題が多い", link: "https://www.bbc.co.uk/news/10628494" },
+      { text: "Household energy bills fall but may not go much lower", translation: "家庭のエネルギー料金が下がるも、これ以上は下がらないかも", link: "https://www.bbc.co.uk/news/10628494" },
+      // ... 残りのヘッドラインも同様に記述
     ];
 
     let current = 0;
@@ -89,10 +96,7 @@
     let timer = null;
     let mistakeCount = 0;
     let charCount = 0;
-    let currentHeadline = null;
-    let shuffledHeadlines = [];
-
-    document.getElementById("score-formula").innerText = "※ 正確さ重視スコア（(正打数 - 誤打数) ÷ 入力文字数 × 100）で計算しています";
+    let usedHeadlines = [];
 
     function startGame(selectedMode, value) {
       mode = selectedMode;
@@ -100,10 +104,9 @@
       current = 0;
       mistakeCount = 0;
       charCount = 0;
-      shuffledHeadlines = headlines.sort(() => 0.5 - Math.random());
+      usedHeadlines = [];
       document.getElementById("home").classList.add("hidden");
       document.getElementById("game").classList.remove("hidden");
-      document.getElementById("result").classList.add("hidden");
       countdown(3);
     }
 
@@ -124,10 +127,12 @@
     function nextHeadline() {
       if (mode === 'questions' && current >= limit) return finishGame();
       if (mode === 'timer' && Date.now() - startTime >= limit * 1000) return finishGame();
-      currentHeadline = shuffledHeadlines[current % shuffledHeadlines.length];
       document.getElementById("input").value = "";
       document.getElementById("feedback").innerHTML = "";
-      document.getElementById("headline").innerText = currentHeadline.text;
+      let pool = headlines.filter(h => !usedHeadlines.includes(h));
+      let next = pool[Math.floor(Math.random() * pool.length)];
+      usedHeadlines.push(next);
+      document.getElementById("headline").innerText = next.text;
       document.getElementById("input").focus();
       current++;
       updateStatus();
@@ -137,14 +142,13 @@
       const input = document.getElementById("input").value;
       const target = document.getElementById("headline").innerText;
       let feedbackHTML = "";
-      mistakeCount = 0;
       for (let i = 0; i < input.length; i++) {
         const correct = target[i] === input[i];
         const cls = correct ? "correct" : "incorrect";
         feedbackHTML += `<span class="${cls}">${input[i]}</span>`;
         if (!correct) mistakeCount++;
       }
-      charCount = input.length;
+      charCount += input.length;
       document.getElementById("feedback").innerHTML = feedbackHTML;
       updateStatus();
     }
@@ -161,21 +165,30 @@
 
     function finishGame() {
       clearTimeout(timer);
-      const correct = charCount - mistakeCount;
-      const accuracy = Math.max(0, (correct / charCount) * 100).toFixed(1);
       document.getElementById("game").classList.add("hidden");
-      document.getElementById("result").classList.remove("hidden");
-      document.getElementById("final-score").innerText = `Score: ${accuracy}%`;
-      document.getElementById("final-details").innerText = `Mistakes: ${mistakeCount} / Characters: ${charCount}`;
-      document.getElementById("original-headline").innerText = currentHeadline.text;
-      document.getElementById("headline-translation").innerText = currentHeadline.translation;
-      document.getElementById("headline-link").href = currentHeadline.url;
+      document.getElementById("results").classList.remove("hidden");
+      const timeSpent = Math.max((Date.now() - startTime) / 1000, 1);
+      const score = ((charCount - mistakeCount * 2) / timeSpent).toFixed(1);
+      document.getElementById("finalScore").innerText = `Score: ${score}（(正タイプ数 - ミス数×2) ÷ 時間）で計算しています）`;
+      renderUsedHeadlines();
+    }
+
+    function renderUsedHeadlines() {
+      const container = document.getElementById("newsResults");
+      container.innerHTML = "<h3>出題されたニュース一覧：</h3>";
+      usedHeadlines.forEach((item, index) => {
+        container.innerHTML += `
+          <details>
+            <summary>${index + 1}. ${item.text}</summary>
+            <p><strong>翻訳：</strong>${item.translation}</p>
+            <p><a href="${item.link}" target="_blank">出典を見る</a></p>
+          </details>`;
+      });
     }
 
     function goHome() {
+      document.getElementById("results").classList.add("hidden");
       document.getElementById("home").classList.remove("hidden");
-      document.getElementById("game").classList.add("hidden");
-      document.getElementById("result").classList.add("hidden");
     }
   </script>
 </body>
