@@ -113,11 +113,12 @@
 
 function countdown(seconds) {
   if (seconds === 0) {
+    document.getElementById("headline").innerText = ""; // カウントダウン表示消す
     if (mode === 'timer') {
-      startTime = Date.now(); // ⬅️ ゲームスタート時刻を先にセット
+      startTime = Date.now(); // ← スタート時間
       timer = setTimeout(() => finishGame(), limit * 1000);
     }
-    nextHeadline(); // ⬅️ 出題は startTime 設定後に呼ぶ
+    setTimeout(() => nextHeadline(), 50); // ← 少し待ってから開始
     return;
   }
   document.getElementById("headline").innerText = `Starting in ${seconds}...`;
