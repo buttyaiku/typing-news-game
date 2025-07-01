@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Game - News Edition</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #f9f9f9;
+    }
+    .hidden { display: none; }
+    .centered {
+      text-align: center;
+      margin: 20px;
+    }
+    input[type="text"] {
+      font-size: 24px;
+      padding: 10px;
+      width: 80%;
+      max-width: 800px;
+    }
+    .feedback span.correct { color: green; }
+    .feedback span.incorrect { color: red; }
+    .controls button {
+      font-size: 18px;
+      margin: 5px;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="home" class="centered">
+    <h1>Typing Game - News Edition</h1>
+    <p>Select your game mode:</p>
+    <div class="controls">
+      <button onclick="startGame('questions', 1)">1 Question</button>
+      <button onclick="startGame('questions', 10)">10 Questions</button>
+      <button onclick="startGame('questions', 30)">30 Questions</button><br>
+      <button onclick="startGame('timer', 60)">1 Minute</button>
+      <button onclick="startGame('timer', 180)">3 Minutes</button>
+      <button onclick="startGame('timer', 300)">5 Minutes</button>
+    </div>
+  </div>
+
+  <div id="game" class="centered hidden">
+    <h2 id="headline"></h2>
+    <input type="text" id="input" oninput="checkTyping()">
+    <div id="feedback" class="feedback"></div>
+    <p id="status"></p>
+    <button onclick="nextHeadline()">Next</button>
+    <button onclick="goHome()">Home</button>
+  </div>
+
+  <script>
+    const headlines = [
+      "Senate considers ditching the EV tax credit even earlier than planned",
+      "Why a GOP senator says the budget deal is not enough",
+      "Biden outlines a new climate initiative for summer",
+      "Stock market rallies after economic report surprises",
+      "NASA reveals images of Saturn's rings during eclipse",
+      "New AI law passed to regulate deepfakes",
+      "Millions lose internet after undersea cable failure",
+      "Scientists discover possible cure for rare disease",
+      "UN debates action plan for refugee crisis",
+      "Cyberattack on banks prompts national response"
+    ];
+
+    let current = 0;
+    let mode = "questions";
+    let limit = 10;
+    let startTime = 0;
+    let timer = null;
+    let mistakeCount = 0;
+    let charCount = 0;
+
+    function startGame(selectedMode, value) {
+      mode = selectedMode;
+      limit = value;
+      current = 0;
+      mistakeCount = 0;
+      charCount = 0;
+      document.getElementById("home").classList.add("hidden");
+      document.getElementById("game").classList.remove("hidden");
+      countdown(3);
+    }
+
+    function countdown(seconds) {
+      if (seconds === 0) {
+        nextHeadline();
+        if (mode === 'timer') {
+          startTime = Date.now();
+          timer = setTimeout(() => finishGame(), limit * 1000);
+        }
+        return;
+      }
+      document.getElementById("headline").innerText = `Starting in ${seconds}...`;
+      setTimeout(() => countdown(seconds - 1), 1000);
+    }
+
+    function nextHeadline() {
+      if (mode === 'questions' && current >= limit) return finishGame();
+      if (mode === 'timer' && Date.now() - startTime >= limit * 1000) return finishGame();
+      document.getElementById("input").value = "";
+      document.getElementById("feedback").innerHTML = "";
+      document.getElementById("headline").innerText = headlines[current % headlines.length];
+      document.getElementById("input").focus();
+      current++;
+      updateStatus();
+    }
+
+    function checkTyping() {
+      const input = document.getElementById("input").value;
+      const target = document.getElementById("headline").innerText;
+      let feedbackHTML = "";
+      for (let i = 0; i < input.length; i++) {
+        const correct = target[i] === input[i];
+        const cls = correct ? "correct" : "incorrect";
+        feedbackHTML += `<span class="${cls}">${input[i]}</span>`;
+        if (!correct) mistakeCount++;
+      }
+      charCount += input.length;
+      document.getElementById("feedback").innerHTML = feedbackHTML;
+      updateStatus();
+    }
+
+    function updateStatus() {
+      let text = `Mistakes: ${mistakeCount}`;
+      if (mode === 'questions') text += ` | ${current} / ${limit}`;
+      if (mode === 'timer') {
+        const remaining = Math.max(0, limit - Math.floor((Date.now() - startTime) / 1000));
+        text += ` | Time Left: ${remaining}s`;
+      }
+      document.getElementById("status").innerText = text;
+    }
+
+    function finishGame() {
+      clearTimeout(timer);
+      const score = charCount - mistakeCount * 2;
+      alert(`Finished!\nScore: ${score}\nMistakes: ${mistakeCount}\nCharacters: ${charCount}`);
+      goHome();
+    }
+
+    function goHome() {
+      document.getElementById("game").classList.add("hidden");
+      document.getElementById("home").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
