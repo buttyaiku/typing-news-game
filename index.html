@@ -117,6 +117,8 @@
         if (mode === 'timer') {
           startTime = Date.now();
           timer = setTimeout(() => finishGame(), limit * 1000);
+        } else {
+          startTime = Date.now();
         }
         setTimeout(() => nextHeadline(), 50);
         return;
@@ -131,6 +133,7 @@
       document.getElementById("input").value = "";
       document.getElementById("feedback").innerHTML = "";
       let pool = headlines.filter(h => !usedHeadlines.includes(h));
+      if (pool.length === 0) return finishGame();
       let next = pool[Math.floor(Math.random() * pool.length)];
       usedHeadlines.push(next);
       document.getElementById("headline").innerText = next.text;
@@ -144,17 +147,13 @@
       const target = document.getElementById("headline").innerText;
       let feedbackHTML = "";
       let localMistakeCount = 0;
-      let correctUntil = true;
-
-      for (let i = 0; i < input.length; i++) {
-        if (i >= target.length || input[i] !== target[i]) {
-          correctUntil = false;
-        }
-        const cls = correctUntil ? "correct" : "incorrect";
-        feedbackHTML += `<span class="${cls}">${input[i] || ''}</span>`;
-        if (!correctUntil) localMistakeCount++;
+      for (let i = 0; i < target.length; i++) {
+        const inputChar = input[i] || "";
+        const correct = inputChar === target[i];
+        const cls = correct ? "correct" : "incorrect";
+        feedbackHTML += `<span class="${cls}">${inputChar || ' '}</span>`;
+        if (!correct) localMistakeCount++;
       }
-
       mistakeCount += localMistakeCount;
       charCount += input.length;
       document.getElementById("feedback").innerHTML = feedbackHTML;
