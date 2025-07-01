@@ -76,6 +76,7 @@
 
   <div id="results" class="centered hidden">
     <h2>Game Results</h2>
+    <p id="summaryStats"></p>
     <p id="finalScore"></p>
     <div id="history"></div>
     <div id="newsResults"></div>
@@ -85,8 +86,7 @@
   <script>
     const headlines = [
       { text: "Chris Mason Labour still has a big persuasion job ahead", translation: "クリス・メイソン氏：労働党はまだ説得すべき課題が多い", link: "https://www.bbc.co.uk/news/10628494" },
-      { text: "Household energy bills fall but may not go much lower", translation: "家庭のエネルギー料金が下がるも、これ以上は下がらないかも", link: "https://www.bbc.co.uk/news/10628494" },
-      // ... 残りのヘッドラインも同様に記述
+      { text: "Household energy bills fall but may not go much lower", translation: "家庭のエネルギー料金が下がるも、これ以上は下がらないかも", link: "https://www.bbc.co.uk/news/10628494" }
     ];
 
     let current = 0;
@@ -169,7 +169,8 @@
       document.getElementById("results").classList.remove("hidden");
       const timeSpent = Math.max((Date.now() - startTime) / 1000, 1);
       const score = ((charCount - mistakeCount * 2) / timeSpent).toFixed(1);
-      document.getElementById("finalScore").innerText = `Score: ${score}（(正タイプ数 - ミス数×2) ÷ 時間）で計算しています）`;
+      document.getElementById("summaryStats").innerText = `正タイプ数: ${charCount} | ミス数: ${mistakeCount} | 時間: ${timeSpent.toFixed(1)}秒`;
+      document.getElementById("finalScore").innerText = `Score: ${score}（(${charCount} - ${mistakeCount}×2) ÷ ${timeSpent.toFixed(1)}）で計算しています）`;
       renderUsedHeadlines();
     }
 
