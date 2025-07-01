@@ -84,10 +84,39 @@
   </div>
 
   <script>
-    const headlines = [
-      { text: "Chris Mason Labour still has a big persuasion job ahead", translation: "クリス・メイソン氏：労働党はまだ説得すべき課題が多い", link: "https://www.bbc.co.uk/news/10628494" },
-      { text: "Household energy bills fall but may not go much lower", translation: "家庭のエネルギー料金が下がるも、これ以上は下がらないかも", link: "https://www.bbc.co.uk/news/10628494" }
-    ];
+const headlines = [
+  "Chris Mason: Labour still has a big persuasion job ahead",
+  "Energy bills fall £11 a month but may not stay lower",
+  "Chief Rabbi calls vile Jew-hatred at Glastonbury a national shame",
+  "US-Israeli backed Gaza aid group must be shut down, say 130 charities",
+  "Royal train to be cut in Palace cost-saving measure",
+  "Father jumps off Disney cruise ship to save daughter who fell overboard",
+  "Boulter and Kartal win on record-breaking day for British players",
+  "Hot weather continues in parts of England but temperatures cool elsewhere",
+  "Thai prime minister suspended over leaked phone call",
+  "US Senate holds marathon vote on Trump's big beautiful bill",
+  "Parental leave and pay for new parents to be reviewed",
+  "What has been driving the rise in disability benefit claims?",
+  "Did BBC's focus on one potential Glastonbury controversy miss another?",
+  "The Papers: Chaos on eve of welfare vote and Red-hot Brits",
+  "As Squid Game ends, South Koreans return to the reality that inspired it",
+  "Trans troops in US military in survival mode as ban on serving kicks in",
+  "House prices see biggest monthly fall for over two years",
+  "Guilty plea expected over 2022 murders of four Idaho students",
+  "Trump global aid cuts risk 14 million deaths in five years, report says",
+  "Millions of lovebugs swarm hikers in South Korea",
+  "Parents face hurdles vaccinating children, report says",
+  "Turkey arrests journalists over alleged cartoon of Prophet Muhammad",
+  "Animal cruelty reports rise by a third in a year",
+  "Is Zohran Mamdani the Democrat’s new secret weapon?",
+  "Music and Politics At Glastonbury",
+  "Al-Hilal climb Everest - but worrying signs for Man City",
+  "Faith amid the fury - how Lion king Itoje keeps his peace",
+  "What's coming up at Wimbledon today?",
+  "Putintseva asks umpire to eject spectator over safety fear",
+  "Fifa should consider playing World Cup final at 9am",
+  "Is it conceivable that Mercedes could drop Russell for Verstappen?"
+];
 
     let current = 0;
     let mode = "questions";
@@ -98,6 +127,7 @@
     let charCount = 0;
     let usedHeadlines = [];
     let currentTarget = "";
+    let currentFeedback = "";
 
     function startGame(selectedMode, value) {
       mode = selectedMode;
@@ -158,8 +188,9 @@
       mistakeCount += localMistakeCount;
       charCount += input.length;
       document.getElementById("feedback").innerHTML = feedbackHTML;
+      currentFeedback = feedbackHTML;
       updateStatus();
-      nextHeadline();
+      setTimeout(() => nextHeadline(), 100);
     }
 
     function updateStatus() {
