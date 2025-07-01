@@ -67,10 +67,10 @@
 
   <div id="game" class="centered hidden">
     <h2 id="headline"></h2>
-    <input type="text" id="input" oninput="checkTyping()">
+    <input type="text" id="input">
     <div id="feedback" class="feedback"></div>
     <p id="status"></p>
-    <button onclick="nextHeadline()">Next</button>
+    <button onclick="checkTyping(); nextHeadline();">Next</button>
     <button onclick="goHome()">Home</button>
   </div>
 
@@ -106,6 +106,7 @@
       charCount = 0;
       usedHeadlines = [];
       document.getElementById("home").classList.add("hidden");
+      document.getElementById("results").classList.add("hidden");
       document.getElementById("game").classList.remove("hidden");
       countdown(3);
     }
@@ -142,12 +143,19 @@
       const input = document.getElementById("input").value;
       const target = document.getElementById("headline").innerText;
       let feedbackHTML = "";
+      let localMistakeCount = 0;
+      let correctUntil = true;
+
       for (let i = 0; i < input.length; i++) {
-        const correct = target[i] === input[i];
-        const cls = correct ? "correct" : "incorrect";
-        feedbackHTML += `<span class="${cls}">${input[i]}</span>`;
-        if (!correct) mistakeCount++;
+        if (i >= target.length || input[i] !== target[i]) {
+          correctUntil = false;
+        }
+        const cls = correctUntil ? "correct" : "incorrect";
+        feedbackHTML += `<span class="${cls}">${input[i] || ''}</span>`;
+        if (!correctUntil) localMistakeCount++;
       }
+
+      mistakeCount += localMistakeCount;
       charCount += input.length;
       document.getElementById("feedback").innerHTML = feedbackHTML;
       updateStatus();
