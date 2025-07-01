@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Typing Game - Keydown Edition</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Game - News Edition</title>
   <style>
     body {
       font-family: 'Courier New', monospace;
@@ -12,19 +13,21 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
-      background: #f0f0f0;
+      background: #f9f9f9;
     }
     .hidden { display: none; }
     .centered {
       text-align: center;
       margin: 20px;
     }
-    #input-display {
+    input[type="text"] {
       font-size: 24px;
-      min-height: 40px;
+      padding: 10px;
+      width: 80%;
+      max-width: 800px;
     }
-    .correct { color: green; }
-    .incorrect { color: red; }
+    .feedback span.correct { color: green; }
+    .feedback span.incorrect { color: red; }
     .controls button {
       font-size: 18px;
       margin: 5px;
@@ -46,9 +49,10 @@
     </div>
   </div>
 
-  <div id="game" class="centered hidden" tabindex="0">
+  <div id="game" class="centered hidden">
     <h2 id="headline"></h2>
-    <div id="input-display"></div>
+    <input type="text" id="input" inputmode="latin">
+    <div id="feedback" class="feedback"></div>
     <p id="status"></p>
     <button onclick="nextHeadline()">Next</button>
     <button onclick="goHome()">Home</button>
@@ -59,10 +63,13 @@
       "Chris Mason Labour still has a big persuasion job ahead",
       "Household energy bills fall but may not go much lower",
       "Is RFK Jrs divisive plan to Make America Healthy Again fearmongering or revolutionary",
+      "I had to investigate my own abuse case because the police failed me",
       "Guilty plea expected over US student murders",
       "Royal train to be cut in Palace cost-saving measure",
       "Father and daughter plucked from sea after cruise ship drama",
-      "Emma Raducanu beats British teenager Mimi Xu on first day of Wimbledon"
+      "Emma Raducanu beats British teenager Mimi Xu on first day of Wimbledon",
+      "Heatwave peak sees parts of UK climb to 33C",
+      "Hundreds of kids to be tested for disease in Australia after childcare rape charge",
     ];
 
     let shuffled = [];
@@ -73,12 +80,14 @@
     let timer = null;
     let mistakeCount = 0;
     let charCount = 0;
-    let userInput = "";
 
     function shuffle(array) {
-      return array.map(value => ({ value, sort: Math.random() }))
-                  .sort((a, b) => a.sort - b.sort)
-                  .map(({ value }) => value);
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
     }
 
     function startGame(selectedMode, value) {
@@ -90,18 +99,17 @@
       shuffled = shuffle(headlines);
       document.getElementById("home").classList.add("hidden");
       document.getElementById("game").classList.remove("hidden");
-      document.getElementById("game").focus();
       countdown(3);
     }
 
     function countdown(seconds) {
       if (seconds === 0) {
+        document.getElementById("headline").innerText = "";
         if (mode === 'timer') {
           startTime = Date.now();
           timer = setTimeout(() => finishGame(), limit * 1000);
         }
-        userInput = "";
-        nextHeadline();
+        setTimeout(() => nextHeadline(), 50);
         return;
       }
       document.getElementById("headline").innerText = `Starting in ${seconds}...`;
@@ -111,22 +119,12 @@
     function nextHeadline() {
       if (mode === 'questions' && current >= limit) return finishGame();
       if (mode === 'timer' && Date.now() - startTime >= limit * 1000) return finishGame();
-      userInput = "";
-      updateInputDisplay();
+      document.getElementById("input").value = "";
+      document.getElementById("feedback").innerHTML = "";
       document.getElementById("headline").innerText = shuffled[current % shuffled.length];
+      document.getElementById("input").focus();
       current++;
       updateStatus();
-    }
-
-    function updateInputDisplay() {
-      const target = document.getElementById("headline").innerText;
-      let html = "";
-      for (let i = 0; i < userInput.length; i++) {
-        const correct = userInput[i] === target[i];
-        const cls = correct ? "correct" : "incorrect";
-        html += `<span class="${cls}">${userInput[i]}</span>`;
-      }
-      document.getElementById("input-display").innerHTML = html;
     }
 
     function updateStatus() {
@@ -141,8 +139,8 @@
 
     function finishGame() {
       clearTimeout(timer);
-      const score = userInput.length - mistakeCount * 2;
-      alert(`Finished!\nScore: ${score}\nMistakes: ${mistakeCount}\nCharacters Typed: ${userInput.length}`);
+      const score = charCount - mistakeCount * 2;
+      alert(`Finished!\nScore: ${score}\nMistakes: ${mistakeCount}\nCharacters: ${charCount}`);
       goHome();
     }
 
@@ -151,30 +149,30 @@
       document.getElementById("home").classList.remove("hidden");
     }
 
-    // キー入力判定
-    document.getElementById("game").addEventListener("keydown", (e) => {
-      const key = e.key;
+    function isZenkaku(char) {
+      return char.charCodeAt(0) >= 0xFF01 && char.charCodeAt(0) <= 0xFF5E;
+    }
 
-      if (key === "Backspace") {
-        if (userInput.length > 0) userInput = userInput.slice(0, -1);
-        updateInputDisplay();
-        e.preventDefault();
-        return;
+    document.getElementById("input").addEventListener("keydown", (e) => {
+      const inputElem = document.getElementById("input");
+      const target = document.getElementById("headline").innerText;
+      const pos = inputElem.value.length;
+      const expected = target[pos] || "";
+      const typed = e.key;
+
+      if (typed.length === 1 && typed !== expected) {
+        mistakeCount++;
       }
-
-      if (key === "Enter") {
-        nextHeadline();
-        return;
-      }
-
-      // 1文字のみ対応（ShiftやCapsLock、変換確定前の全角文字はスキップ）
-      if (key.length !== 1) return;
-
-      const expected = document.getElementById("headline").innerText[userInput.length] || "";
-      userInput += key;
-      if (key !== expected) mistakeCount++;
-      updateInputDisplay();
+      charCount++;
       updateStatus();
+    });
+
+    document.getElementById("input").addEventListener("input", (e) => {
+      const lastChar = e.target.value.slice(-1);
+      if (isZenkaku(lastChar)) {
+        alert("全角入力が検出されました。半角英数モードに切り替えてください。");
+        e.target.value = e.target.value.replace(/[\uff01-\uff5e]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+      }
     });
   </script>
 </body>
