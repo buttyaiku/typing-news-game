@@ -99,6 +99,15 @@
     let timer = null;
     let mistakeCount = 0;
     let charCount = 0;
+    let headlinePool = [];
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
     function startGame(selectedMode, value) {
       mode = selectedMode;
@@ -106,31 +115,32 @@
       current = 0;
       mistakeCount = 0;
       charCount = 0;
+      headlinePool = shuffleArray([...headlines]);
       document.getElementById("home").classList.add("hidden");
       document.getElementById("game").classList.remove("hidden");
       countdown(3);
     }
 
-function countdown(seconds) {
-  if (seconds === 0) {
-    document.getElementById("headline").innerText = ""; // カウントダウン表示消す
-    if (mode === 'timer') {
-      startTime = Date.now(); // ← スタート時間
-      timer = setTimeout(() => finishGame(), limit * 1000);
+    function countdown(seconds) {
+      if (seconds === 0) {
+        document.getElementById("headline").innerText = "";
+        if (mode === 'timer') {
+          startTime = Date.now();
+          timer = setTimeout(() => finishGame(), limit * 1000);
+        }
+        setTimeout(() => nextHeadline(), 50);
+        return;
+      }
+      document.getElementById("headline").innerText = `Starting in ${seconds}...`;
+      setTimeout(() => countdown(seconds - 1), 1000);
     }
-    setTimeout(() => nextHeadline(), 50); // ← 少し待ってから開始
-    return;
-  }
-  document.getElementById("headline").innerText = `Starting in ${seconds}...`;
-  setTimeout(() => countdown(seconds - 1), 1000);
-}
 
     function nextHeadline() {
       if (mode === 'questions' && current >= limit) return finishGame();
       if (mode === 'timer' && Date.now() - startTime >= limit * 1000) return finishGame();
       document.getElementById("input").value = "";
       document.getElementById("feedback").innerHTML = "";
-      document.getElementById("headline").innerText = headlines[current % headlines.length];
+      document.getElementById("headline").innerText = headlinePool[current % headlinePool.length];
       document.getElementById("input").focus();
       current++;
       updateStatus();
