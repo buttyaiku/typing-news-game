@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Typing Game - News Edition</title>
   <style>
     body {
@@ -33,11 +33,17 @@
       margin: 5px;
       padding: 10px 20px;
     }
+    .warning {
+      color: red;
+      font-weight: bold;
+      margin: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="home" class="centered">
     <h1>Typing Game - News Edition</h1>
+    <p class="warning">⚠ 半角英数モードでタイピングしてください</p>
     <p>Select your game mode:</p>
     <div class="controls">
       <button onclick="startGame('questions', 1)">1 Question</button>
@@ -54,6 +60,7 @@
     <input type="text" id="input" inputmode="latin">
     <div id="feedback" class="feedback"></div>
     <p id="status"></p>
+    <p id="warn" class="warning hidden">⚠ 全角文字が含まれています（半角に切り替えてください）</p>
     <button onclick="nextHeadline()">Next</button>
     <button onclick="goHome()">Home</button>
   </div>
@@ -70,6 +77,26 @@
       "Emma Raducanu beats British teenager Mimi Xu on first day of Wimbledon",
       "Heatwave peak sees parts of UK climb to 33C",
       "Hundreds of kids to be tested for disease in Australia after childcare rape charge",
+      "Police launch criminal investigation into Bob Vylan and Kneecap Glastonbury sets",
+      "Parental leave and pay for new parents to be reviewed",
+      "What has been driving the rise in disability benefit claims",
+      "The Papers Chaos on eve of welfare vote and Red-hot Brits",
+      "Did BBCs focus on one potential Glastonbury controversy miss another",
+      "As Squid Game ends South Koreans return to the reality that inspired it",
+      "Were not safe here anymore Syrias Christians fear for future after devastating church attack",
+      "How cold case killer was caught after more than half a century",
+      "Trans troops in US military in survival mode as ban on serving kicks in",
+      "Parents face hurdles vaccinating children report",
+      "BBC investigation reveals hidden deaths at India festival crush",
+      "US Senate begins voting on Trumps big beautiful bill",
+      "Almost 2200 dog attacks on Royal Mail staff last year",
+      "Tree that killed child was propped up for decades",
+      "Food delivery apps to tighten checks to stop illegal workers",
+      "Boulter and Kartal win on record-breaking day for British players",
+      "The Fluminense history maker 44 with his eyes on Peter Shilton",
+      "Putintseva asks umpire to eject spectator over safety fear",
+      "Fifa should consider playing World Cup final at 9am",
+      "Alcaraz avoids Fognini shock after fan taken ill"
     ];
 
     let shuffled = [];
@@ -82,7 +109,7 @@
     let charCount = 0;
 
     function shuffle(array) {
-      const arr = array.slice();
+      let arr = array.slice();
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -121,11 +148,40 @@
       if (mode === 'timer' && Date.now() - startTime >= limit * 1000) return finishGame();
       document.getElementById("input").value = "";
       document.getElementById("feedback").innerHTML = "";
+      document.getElementById("warn").classList.add("hidden");
       document.getElementById("headline").innerText = shuffled[current % shuffled.length];
       document.getElementById("input").focus();
       current++;
       updateStatus();
     }
+
+    document.getElementById("input").addEventListener("keydown", function(e) {
+      const target = document.getElementById("headline").innerText;
+      const inputEl = document.getElementById("input");
+      const feedback = document.getElementById("feedback");
+
+      if (e.key.length === 1) {
+        const input = inputEl.value + e.key;
+        let html = "";
+        let errors = 0;
+        for (let i = 0; i < input.length; i++) {
+          const correct = target[i] === input[i];
+          const cls = correct ? "correct" : "incorrect";
+          html += `<span class="${cls}">${input[i]}</span>`;
+          if (!correct) errors++;
+        }
+        feedback.innerHTML = html;
+        mistakeCount += errors;
+        charCount += 1;
+        updateStatus();
+      }
+    });
+
+    document.getElementById("input").addEventListener("input", function(e) {
+      const input = e.target.value;
+      const hasZenkaku = /[^\u0000-\u00ff]/.test(input);
+      document.getElementById("warn").classList.toggle("hidden", !hasZenkaku);
+    });
 
     function updateStatus() {
       let text = `Mistakes: ${mistakeCount}`;
@@ -148,32 +204,6 @@
       document.getElementById("game").classList.add("hidden");
       document.getElementById("home").classList.remove("hidden");
     }
-
-    function isZenkaku(char) {
-      return char.charCodeAt(0) >= 0xFF01 && char.charCodeAt(0) <= 0xFF5E;
-    }
-
-    document.getElementById("input").addEventListener("keydown", (e) => {
-      const inputElem = document.getElementById("input");
-      const target = document.getElementById("headline").innerText;
-      const pos = inputElem.value.length;
-      const expected = target[pos] || "";
-      const typed = e.key;
-
-      if (typed.length === 1 && typed !== expected) {
-        mistakeCount++;
-      }
-      charCount++;
-      updateStatus();
-    });
-
-    document.getElementById("input").addEventListener("input", (e) => {
-      const lastChar = e.target.value.slice(-1);
-      if (isZenkaku(lastChar)) {
-        alert("全角入力が検出されました。半角英数モードに切り替えてください。");
-        e.target.value = e.target.value.replace(/[\uff01-\uff5e]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
-      }
-    });
   </script>
 </body>
 </html>
