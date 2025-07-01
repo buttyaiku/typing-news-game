@@ -70,7 +70,7 @@
     <input type="text" id="input">
     <div id="feedback" class="feedback"></div>
     <p id="status"></p>
-    <button onclick="checkTyping(); nextHeadline();">Next</button>
+    <button onclick="submitAnswer()">Next</button>
     <button onclick="goHome()">Home</button>
   </div>
 
@@ -97,6 +97,7 @@
     let mistakeCount = 0;
     let charCount = 0;
     let usedHeadlines = [];
+    let currentTarget = "";
 
     function startGame(selectedMode, value) {
       mode = selectedMode;
@@ -136,28 +137,29 @@
       if (pool.length === 0) return finishGame();
       let next = pool[Math.floor(Math.random() * pool.length)];
       usedHeadlines.push(next);
-      document.getElementById("headline").innerText = next.text;
+      currentTarget = next.text;
+      document.getElementById("headline").innerText = currentTarget;
       document.getElementById("input").focus();
       current++;
       updateStatus();
     }
 
-    function checkTyping() {
+    function submitAnswer() {
       const input = document.getElementById("input").value;
-      const target = document.getElementById("headline").innerText;
       let feedbackHTML = "";
       let localMistakeCount = 0;
-      for (let i = 0; i < target.length; i++) {
-        const inputChar = input[i] || "";
-        const correct = inputChar === target[i];
+      for (let i = 0; i < currentTarget.length; i++) {
+        const inputChar = input[i] || " ";
+        const correct = inputChar === currentTarget[i];
         const cls = correct ? "correct" : "incorrect";
-        feedbackHTML += `<span class="${cls}">${inputChar || ' '}</span>`;
+        feedbackHTML += `<span class="${cls}">${inputChar}</span>`;
         if (!correct) localMistakeCount++;
       }
       mistakeCount += localMistakeCount;
       charCount += input.length;
       document.getElementById("feedback").innerHTML = feedbackHTML;
       updateStatus();
+      nextHeadline();
     }
 
     function updateStatus() {
