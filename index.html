@@ -137,31 +137,28 @@
     const resultMessage = document.getElementById('resultMessage');
 
     function getRandomWord() {
-      if (words.length === 0) return null;
       return words[Math.floor(Math.random() * words.length)];
     }
 
     function updateWord() {
       currentWord = getRandomWord();
-      if (currentWord && currentWord.japanese && currentWord.romaji) {
-        questionElement.textContent = currentWord.japanese;
-        romajiElement.textContent = currentWord.romaji;
+      if (currentWord) {
+        questionElement.textContent = currentWord.japanese || "？";
+        romajiElement.textContent = currentWord.romaji || "";
         userInputElement.value = '';
-      } else {
-        questionElement.textContent = "問題の取得に失敗しました";
-        romajiElement.textContent = "";
       }
     }
 
     function updateStats() {
       const accuracy = totalChars === 0 ? 0 : Math.round((correctChars / totalChars) * 100);
-      const speed = Math.round((correctChars / (60 - timeLeft)) * 60) || 0;
+      const speed = (60 - timeLeft) > 0 ? Math.round((correctChars / (60 - timeLeft)) * 60) : 0;
       accuracyElement.textContent = `${accuracy}%`;
       speedElement.textContent = `${speed}字/分`;
     }
 
     function startGame() {
       if (isGameActive) return;
+
       isGameActive = true;
       timeLeft = 60;
       correctChars = 0;
@@ -192,21 +189,20 @@
       const finalAccuracy = totalChars === 0 ? 0 : Math.round((correctChars / totalChars) * 100);
       const finalSpeed = Math.round((correctChars / 60) * 60) || 0;
 
-      resultMessage.textContent = 
-        `終了！ 正確率: ${finalAccuracy}%, 入力速度: ${finalSpeed}字/分`;
+      resultMessage.textContent = `終了！ 正確率: ${finalAccuracy}%, 入力速度: ${finalSpeed}字/分`;
       resultMessage.className = 'result-message correct';
     }
 
-    userInputElement.addEventListener('input', (e) => {
+    userInputElement.addEventListener('input', () => {
       if (!isGameActive || !currentWord) return;
 
-      const input = e.target.value.trim();
+      const input = userInputElement.value.trim();
       const correct = currentWord.romaji;
 
-      totalChars++;
+      totalChars = totalChars + 1;
 
       if (input === correct) {
-        correctChars += input.length;
+        correctChars += correct.length;
         updateWord();
       }
 
